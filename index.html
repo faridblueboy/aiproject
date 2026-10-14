@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#06060b" />
+<title>صداور | تبدیل متن به صدای هوش مصنوعی</title>
+<meta name="description" content="صداور؛ تبدیل متن شما به صدای طبیعی و انسانی با هوش مصنوعی. نمونه صداها را بشنوید و سفارش خود را تلفنی ثبت کنید." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   1) متغیرها و ریست
+   ============================================================ */
+:root{
+  --bg:#06060b;
+  --panel:rgba(255,255,255,.035);
+  --panel-2:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.08);
+  --border-hi:rgba(255,255,255,.17);
+  --text:#edeef5;
+  --muted:#9aa1b8;
+  --primary:#7c5cff;
+  --cyan:#22d3ee;
+  --pink:#ff5c9d;
+  --radius:22px;
+  --ease:cubic-bezier(.2,.75,.3,1);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+img,svg{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+
+body{
+  font-family:'Vazirmatn',Tahoma,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.9;
+  overflow-x:hidden;
+  position:relative;
+  min-height:100vh;
+}
+
+/* پس‌زمینه نوری */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(900px 620px at 82% -8%, rgba(124,92,255,.24), transparent 62%),
+    radial-gradient(720px 520px at 2% 12%, rgba(34,211,238,.13), transparent 62%),
+    radial-gradient(900px 700px at 50% 118%, rgba(255,92,157,.11), transparent 62%);
+}
+
+.page{position:relative;z-index:1}
+
+.container{width:100%;max-width:1200px;margin-inline:auto;padding-inline:22px}
+
+::selection{background:rgba(124,92,255,.45);color:#fff}
+
+/* اسکرول‌بار */
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:#0a0a12}
+::-webkit-scrollbar-thumb{background:#26263a;border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#34345a}
+
+/* ============================================================
+   2) دکمه‌ها و اجزای پایه
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:14px 28px;border-radius:15px;
+  font-size:15px;font-weight:700;cursor:pointer;
+  border:1px solid transparent;
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease), background .25s, border-color .25s;
+  white-space:nowrap;
+}
+.btn svg{width:19px;height:19px;flex-shrink:0}
+
+.btn-primary{
+  background:linear-gradient(135deg,#7c5cff,#5b8cff);
+  color:#fff;
+  box-shadow:0 14px 34px -14px rgba(124,92,255,.95);
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 46px -16px rgba(124,92,255,1)}
+
+.btn-ghost{
+  background:rgba(255,255,255,.045);
+  border-color:var(--border-hi);
+  color:var(--text);
+}
+.btn-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.32);transform:translateY(-3px)}
+
+.btn-sm{padding:11px 20px;font-size:14px;border-radius:13px}
+
+/* ============================================================
+   3) نوبار
+   ============================================================ */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,6,11,.72);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;height:74px}
+
+.logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;letter-spacing:-.3px}
+.logo-mark{
+  width:40px;height:40px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary),var(--cyan));
+  display:grid;place-items:center;
+  box-shadow:0 10px 26px -10px rgba(124,92,255,.9);
+}
+.logo-mark svg{width:22px;height:22px;fill:#fff}
+.logo small{display:block;font-size:10px;font-weight:500;color:var(--muted);line-height:1;margin-top:2px;letter-spacing:1px}
+
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{
+  padding:9px 15px;border-radius:11px;font-size:14.5px;font-weight:500;color:var(--muted);
+  transition:.22s;
+}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.06)}
+
+.nav-cta{display:flex;align-items:center;gap:10px}
+
+.burger{display:none;width:42px;height:42px;border-radius:12px;border:1px solid var(--border-hi);background:rgba(255,255,255,.04);place-items:center}
+.burger span{display:block;width:18px;height:2px;background:#fff;border-radius:2px;position:relative;transition:.25s}
+.burger span::before,.burger span::after{content:'';position:absolute;right:0;width:18px;height:2px;background:#fff;border-radius:2px;transition:.25s}
+.burger span::before{top:-6px}
+.burger span::after{top:6px}
+.burger.active span{background:transparent}
+.burger.active span::before{top:0;transform:rotate(45deg)}
+.burger.active span::after{top:0;transform:rotate(-45deg)}
+
+.mobile-menu{
+  display:none;flex-direction:column;gap:4px;
+  padding:10px 22px 20px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:rgba(6,6,11,.96);
+}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:12px 14px;border-radius:12px;color:var(--muted);font-weight:500}
+.mobile-menu a:hover{background:rgba(255,255,255,.06);color:#fff}
+
+/* ============================================================
+   4) هیرو
+   ============================================================ */
+.hero{padding:78px 0 90px;position:relative;overflow:hidden}
+.hero-inner{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
+
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:99px;
+  background:rgba(124,92,255,.12);
+  border:1px solid rgba(124,92,255,.32);
+  color:#c9bcff;font-size:13px;font-weight:600;
+  margin-bottom:24px;
+}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.18);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+.hero h1{
+  font-size:clamp(32px,4.6vw,54px);
+  font-weight:900;line-height:1.42;letter-spacing:-1px;
+  margin-bottom:22px;
+}
+.grad{
+  background:linear-gradient(110deg,#22d3ee,#7c5cff 45%,#ff5c9d);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.lead{font-size:17px;color:var(--muted);max-width:560px;margin-bottom:34px;line-height:2.1}
+
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:34px}
+
+.hero-points{display:flex;flex-wrap:wrap;gap:10px 26px;font-size:14px;color:var(--muted)}
+.hero-points li{display:flex;align-items:center;gap:8px}
+.hero-points svg{width:17px;height:17px;fill:#4ade80;flex-shrink:0}
+
+/* ویژوال هیرو */
+.hero-visual{position:relative;display:grid;place-items:center;min-height:400px}
+.orb{
+  position:absolute;width:340px;height:340px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(124,92,255,.55), rgba(34,211,238,.18) 45%, transparent 70%);
+  filter:blur(48px);animation:float 9s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-24px) scale(1.06)}}
+
+.mock-card{
+  position:relative;width:100%;max-width:400px;
+  background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.025));
+  border:1px solid var(--border-hi);
+  border-radius:26px;
+  padding:26px;
+  backdrop-filter:blur(14px);
+  box-shadow:0 40px 90px -40px rgba(0,0,0,1), inset 0 1px 0 rgba(255,255,255,.09);
+  animation:float2 7s ease-in-out infinite;
+}
+@keyframes float2{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+.mock-row{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.mock-avatar{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  box-shadow:0 10px 26px -12px rgba(124,92,255,1);
+  position:relative;
+}
+.mock-avatar::after{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);
+}
+.mock-lines{flex:1;display:flex;flex-direction:column;gap:8px}
+.mock-lines span{height:9px;border-radius:99px;background:rgba(255,255,255,.13)}
+.mock-lines span:first-child{width:56%}
+.mock-lines span:last-child{width:34%;background:rgba(255,255,255,.08)}
+
+.mock-wave{display:flex;align-items:center;gap:4px;height:96px}
+.mock-wave i{
+  flex:1;height:calc(var(--h) * 100%);
+  border-radius:99px;
+  background:linear-gradient(180deg,#22d3ee,#7c5cff);
+  animation:waveA 1.3s ease-in-out infinite alternate;
+  opacity:.9;
+}
+@keyframes waveA{from{transform:scaleY(.32)}to{transform:scaleY(1)}}
+
+.mock-foot{display:flex;align-items:center;justify-content:space-between;margin-top:22px;font-size:12.5px;color:var(--muted)}
+
+/* ============================================================
+   5) نوار آماری
+   ============================================================ */
+.stats{
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.015);
+}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:36px 0}
+.stat{text-align:center}
+.stat b{display:block;font-size:30px;font-weight:900;background:linear-gradient(120deg,#fff,#b9a8ff);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.4}
+.stat span{font-size:13.5px;color:var(--muted)}
+
+/* ============================================================
+   6) تیتر بخش‌ها
+   ============================================================ */
+section{padding:96px 0}
+section[id]{scroll-margin-top:92px}
+
+.sec-head{text-align:center;max-width:660px;margin:0 auto 56px}
+.kicker{
+  display:inline-block;font-size:13px;font-weight:700;letter-spacing:.5px;
+  color:#a99bff;background:rgba(124,92,255,.1);
+  border:1px solid rgba(124,92,255,.25);
+  padding:6px 16px;border-radius:99px;margin-bottom:18px;
+}
+.sec-head h2{font-size:clamp(26px,3.4vw,40px);font-weight:900;line-height:1.5;letter-spacing:-.6px;margin-bottom:14px}
+.sec-head p{color:var(--muted);font-size:16px}
+
+/* ============================================================
+   7) کارت‌های صدا
+   ============================================================ */
+.voices-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:22px;
+}
+
+.voice-card{
+  position:relative;
+  display:flex;flex-direction:column;gap:16px;
+  padding:24px;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+  transition:transform .38s var(--ease), box-shadow .38s var(--ease), background .38s;
+  overflow:hidden;
+  isolation:isolate;
+}
+.voice-card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(140deg,var(--c1),transparent 48%,var(--c2));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .38s;pointer-events:none;z-index:2;
+}
+.voice-card::after{
+  content:'';position:absolute;top:-70px;right:-70px;width:210px;height:210px;border-radius:50%;
+  background:radial-gradient(circle,var(--c1),transparent 70%);
+  filter:blur(56px);opacity:0;transition:opacity .45s;pointer-events:none;z-index:0;
+}
+.voice-card:hover{transform:translateY(-7px);background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.025));box-shadow:0 34px 70px -34px rgba(0,0,0,.95)}
+.voice-card:hover::before{opacity:1}
+.voice-card:hover::after{opacity:.32}
+.voice-card > *{position:relative;z-index:1}
+
+.vc-top{display:flex;align-items:center;gap:14px}
+.avatar{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;
+  font-size:23px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  box-shadow:0 12px 28px -14px var(--c1);
+  position:relative;
+  overflow:hidden; /* ← اضافه شد برای ماسک شدن تصویر داخل دایره */
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  border-radius:50%;
+  display:block;
+}
+.avatar::after{
+  content:'';position:absolute;inset:-5px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.16);
+  transition:.3s;
+  pointer-events:none;
+}
+.is-playing .avatar::after{animation:ringPulse 1.7s ease-out infinite;border-color:var(--c2)}
+@keyframes ringPulse{
+  0%{transform:scale(1);opacity:.85}
+  100%{transform:scale(1.32);opacity:0}
+}
+
+.vc-id{flex:1;min-width:0}
+.vc-id h3{font-size:18px;font-weight:800;line-height:1.5}
+.vc-id p{font-size:12.5px;color:var(--muted);line-height:1.6}
+
+.badge-ai{
+  font-size:10.5px;font-weight:800;letter-spacing:.6px;
+  padding:4px 10px;border-radius:99px;
+  color:#c7bcff;background:rgba(124,92,255,.14);
+  border:1px solid rgba(124,92,255,.3);
+}
+
+.vc-desc{font-size:13.8px;color:#b6bcd0;line-height:2;min-height:56px}
+
+.tags{display:flex;flex-wrap:wrap;gap:7px}
+.tags span{
+  font-size:11.5px;font-weight:600;color:#a8aec4;
+  padding:5px 12px;border-radius:99px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.07);
+}
+
+/* پلیر */
+.player{display:flex;align-items:center;gap:12px;padding-top:4px}
+
+.play-btn{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  color:#fff;
+  box-shadow:0 10px 24px -10px var(--c1);
+  transition:transform .25s var(--ease), box-shadow .25s;
+  position:relative;
+}
+.play-btn:hover{transform:scale(1.09);box-shadow:0 14px 30px -10px var(--c1)}
+.play-btn:active{transform:scale(.96)}
+.play-btn svg{width:19px;height:19px;fill:#fff}
+.play-btn .i-pause{display:none}
+.is-playing .play-btn .i-play{display:none}
+.is-playing .play-btn .i-pause{display:block}
+
+.play-btn.loading::after{
+  content:'';position:absolute;inset:-3px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.25);
+  border-top-color:#fff;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.track{
+  flex:1;height:7px;border-radius:99px;
+  background:rgba(255,255,255,.09);
+  position:relative;cursor:pointer;
+  overflow:hidden;
+}
+.track .fill{
+  position:absolute;top:0;bottom:0;right:0;width:0;
+  border-radius:99px;
+  background:linear-gradient(90deg,var(--c2),var(--c1));
+}
+.track:hover{background:rgba(255,255,255,.14)}
+
+.time{
+  font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  min-width:76px;text-align:center;
+  direction:ltr;
+}
+
+.btn-order{
+  margin-top:auto;width:100%;
+  padding:13px;border-radius:14px;
+  border:1px solid var(--border-hi);
+  background:rgba(255,255,255,.04);
+  color:var(--text);font-weight:700;font-size:14px;
+  transition:.28s var(--ease);
+}
+.btn-order:hover{
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  border-color:transparent;color:#fff;
+  box-shadow:0 14px 34px -14px var(--c1);
+  transform:translateY(-2px);
+}
+
+/* ============================================================
+   8) مراحل کار
+   ============================================================ */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative}
+.step{
+  position:relative;
+  padding:30px 24px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+  transition:.35s var(--ease);
+}
+.step:hover{transform:translateY(-6px);border-color:rgba(124,92,255,.4);background:linear-gradient(180deg, rgba(124,92,255,.1), rgba(255,255,255,.015))}
+.step-num{
+  width:46px;height:46px;border-radius:14px;
+  display:grid;place-items:center;
+  font-weight:900;font-size:17px;color:#fff;
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  box-shadow:0 12px 28px -14px rgba(124,92,255,1);
+  margin-bottom:18px;
+}
+.step h3{font-size:16.5px;font-weight:800;margin-bottom:8px}
+.step p{font-size:13.5px;color:var(--muted);line-height:2}
+
+/* ============================================================
+   9) مزیت‌ها
+   ============================================================ */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature{
+  padding:28px 26px;border-radius:20px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+  transition:.35s var(--ease);
+}
+.feature:hover{transform:translateY(-6px);border-color:var(--border-hi);background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.02))}
+.feature .ic{
+  width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;font-size:22px;
+  background:rgba(124,92,255,.12);
+  border:1px solid rgba(124,92,255,.24);
+  margin-bottom:18px;
+}
+.feature h3{font-size:16.5px;font-weight:800;margin-bottom:9px}
+.feature p{font-size:13.6px;color:var(--muted);line-height:2}
+
+/* ============================================================
+   10) تماس
+   ============================================================ */
+.contact-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:26px;align-items:start}
+
+.contact-info{
+  padding:32px;border-radius:24px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+}
+.contact-info h3{font-size:22px;font-weight:900;margin-bottom:12px}
+.contact-info > p{font-size:14px;color:var(--muted);margin-bottom:26px;line-height:2}
+
+.contact-list{display:flex;flex-direction:column;gap:12px}
+.c-item{
+  display:flex;align-items:center;gap:14px;
+  padding:15px 17px;border-radius:16px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  transition:.28s var(--ease);
+}
+.c-item:hover{background:rgba(124,92,255,.1);border-color:rgba(124,92,255,.35);transform:translateX(-5px)}
+.c-item .ic{
+  width:42px;height:42px;border-radius:13px;flex-shrink:0;
+  display:grid;place-items:center;font-size:18px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+}
+.c-item .txt{flex:1;min-width:0}
+.c-item .txt span{display:block;font-size:11.5px;color:var(--muted);margin-bottom:2px}
+.c-item .txt b{font-size:15px;font-weight:700;direction:ltr;display:block;text-align:right;word-break:break-all}
+.c-item .copy{
+  font-size:11.5px;padding:6px 12px;border-radius:9px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border-hi);
+  color:var(--muted);transition:.22s;
+}
+.c-item .copy:hover{background:rgba(124,92,255,.25);color:#fff;border-color:transparent}
+
+.hours{
+  margin-top:22px;padding:14px 18px;border-radius:14px;
+  background:rgba(74,222,128,.07);
+  border:1px solid rgba(74,222,128,.2);
+  font-size:13px;color:#a7e9c1;
+  display:flex;align-items:center;gap:10px;
+}
+
+/* فرم */
+.form-card{
+  padding:32px;border-radius:24px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+}
+.form-card h3{font-size:22px;font-weight:900;margin-bottom:8px}
+.form-card > p{font-size:13.5px;color:var(--muted);margin-bottom:24px}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;color:#c4c9db}
+.field input,.field select,.field textarea{
+  width:100%;
+  padding:13px 16px;
+  border-radius:13px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  transition:.24s;
+}
+.field input::placeholder,.field textarea::placeholder{color:#5f6680}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:rgba(124,92,255,.7);
+  background:rgba(124,92,255,.07);
+  box-shadow:0 0 0 4px rgba(124,92,255,.12);
+}
+.field select option{background:#14141f;color:#fff}
+.field textarea{resize:vertical;min-height:110px;font-family:inherit}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.form-card .btn{width:100%;margin-top:6px}
+
+.form-success{
+  display:none;
+  text-align:center;
+  padding:26px 10px;
+}
+.form-success.show{display:block;animation:pop .4s var(--ease)}
+.form-success .ok{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 18px;
+  display:grid;place-items:center;font-size:28px;
+  background:rgba(74,222,128,.14);
+  border:1px solid rgba(74,222,128,.4);
+}
+.form-success h4{font-size:19px;font-weight:800;margin-bottom:10px}
+.form-success p{font-size:13.5px;color:var(--muted);margin-bottom:20px;line-height:2}
+
+/* ============================================================
+   11) فوتر
+   ============================================================ */
+footer{
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:56px 0 30px;
+  background:rgba(255,255,255,.012);
+}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:36px;margin-bottom:40px}
+.foot-brand p{font-size:13.5px;color:var(--muted);margin-top:16px;line-height:2;max-width:340px}
+.foot-col h4{font-size:14.5px;font-weight:800;margin-bottom:16px}
+.foot-col ul{display:flex;flex-direction:column;gap:10px}
+.foot-col a{font-size:13.5px;color:var(--muted);transition:.22s}
+.foot-col a:hover{color:#fff;padding-right:5px}
+
+.foot-bottom{
+  border-top:1px solid rgba(255,255,255,.06);
+  padding-top:22px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-size:12.5px;color:#6b7189;
+}
+
+/* ============================================================
+   12) مودال
+   ============================================================ */
+.modal{position:fixed;inset:0;z-index:1500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.modal-backdrop{position:absolute;inset:0;background:rgba(3,3,8,.78);backdrop-filter:blur(9px);animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal-box{
+  position:relative;
+  width:100%;max-width:470px;max-height:90vh;overflow-y:auto;
+  padding:34px;
+  border-radius:26px;
+  border:1px solid var(--border-hi);
+  background:linear-gradient(180deg,#14141f,#0b0b13);
+  box-shadow:0 50px 110px -40px rgba(0,0,0,1);
+  animation:pop .34s var(--ease);
+}
+@keyframes pop{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+
+.modal-close{
+  position:absolute;top:16px;left:16px;
+  width:36px;height:36px;border-radius:11px;
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);
+  color:var(--muted);font-size:20px;line-height:1;transition:.22s;
+}
+.modal-close:hover{background:rgba(255,80,80,.2);color:#fff;border-color:transparent}
+
+.modal-icon{
+  width:64px;height:64px;border-radius:20px;margin-bottom:20px;
+  display:grid;place-items:center;font-size:28px;
+  background:linear-gradient(135deg,rgba(124,92,255,.3),rgba(34,211,238,.2));
+  border:1px solid rgba(124,92,255,.35);
+}
+.modal-box h3{font-size:21px;font-weight:900;margin-bottom:12px;line-height:1.6}
+.modal-box h3 span{background:linear-gradient(110deg,#22d3ee,#a99bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.modal-box > p{font-size:13.8px;color:var(--muted);line-height:2;margin-bottom:24px}
+
+.modal-call{width:100%;margin-bottom:20px}
+
+.modal-phones{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.mp-row{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--border);
+}
+.mp-row .t{flex:1;font-size:11.5px;color:var(--muted)}
+.mp-row b{font-size:14.5px;direction:ltr;font-weight:700}
+.mp-row button{
+  font-size:11.5px;padding:6px 12px;border-radius:9px;
+  background:rgba(255,255,255,.07);border:1px solid var(--border-hi);
+  color:var(--muted);transition:.22s;
+}
+.mp-row button:hover{background:rgba(124,92,255,.28);color:#fff;border-color:transparent}
+
+.modal-socials{display:flex;gap:10px}
+.modal-socials a{
+  flex:1;text-align:center;padding:12px;border-radius:13px;
+  font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.05);border:1px solid var(--border-hi);
+  transition:.25s;
+}
+.modal-socials a:hover{background:rgba(124,92,255,.22);border-color:transparent;transform:translateY(-2px)}
+
+/* ============================================================
+   13) توست
+   ============================================================ */
+.toast{
+  position:fixed;bottom:30px;left:50%;
+  transform:translate(-50%,24px);
+  padding:13px 24px;border-radius:14px;
+  background:rgba(22,22,34,.97);
+  border:1px solid var(--border-hi);
+  color:#fff;font-size:13.5px;font-weight:600;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,1);
+  opacity:0;pointer-events:none;transition:.32s var(--ease);
+  z-index:2500;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ============================================================
+   14) انیمیشن ظهور
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   15) ریسپانسیو
+   ============================================================ */
+@media (max-width:1080px){
+  .hero-inner{grid-template-columns:1fr;gap:50px}
+  .hero-visual{min-height:320px;order:-1}
+  .hero p.lead{max-width:100%}
+  .steps-grid{grid-template-columns:repeat(2,1fr)}
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+  .contact-wrap{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+
+@media (max-width:860px){
+  .nav-links{display:none}
+  .burger{display:grid}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:26px}
+  section{padding:72px 0}
+  .hero{padding:50px 0 66px}
+}
+
+@media (max-width:620px){
+  .container{padding-inline:16px}
+  .voices-grid{grid-template-columns:1fr}
+  .steps-grid{grid-template-columns:1fr}
+  .features-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr;gap:28px}
+  .hero-cta .btn{width:100%}
+  .modal-box{padding:26px 22px}
+  .stat b{font-size:24px}
+  .form-card,.contact-info{padding:24px}
+  .time{min-width:66px;font-size:11px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- ======================= نوبار ======================= -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M4 9v6h3l5 4V5L7 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+        </span>
+        <span>صداور<small>SEDAVAR AI</small></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#voices">نمونه صداها</a>
+        <a href="#how">نحوه کار</a>
+        <a href="#features">مزیت‌ها</a>
+        <a href="#contact">تماس با ما</a>
+      </nav>
+
+      <div class="nav-cta">
+        <a class="btn btn-primary btn-sm" data-tel="office" href="#">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .58 3.6 1 1 0 0 1-.25 1l-2.23 2.2z"/></svg>
+          ثبت سفارش تلفنی
+        </a>
+        <button class="burger" id="burger" aria-label="منو"><span></span></button>
+      </div>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#voices">نمونه صداها</a>
+      <a href="#how">نحوه کار</a>
+      <a href="#features">مزیت‌ها</a>
+      <a href="#contact">تماس با ما</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ======================= هیرو ======================= -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <span class="pill"><span class="dot"></span> نمونه صداهای هوش مصنوعی آماده شنیدن است</span>
+          <h1>متن شما، با صدای <span class="grad">انسانی</span> و کاملاً طبیعی</h1>
+          <p class="lead">
+            نمونه صداها را گوش کنید، صدای مورد علاقه‌تان را انتخاب کنید و سفارش را تلفنی ثبت کنید.
+            تیم ما متن شما را با پیشرفته‌ترین موتورهای هوش مصنوعی به صدایی گرم، دقیق و اختصاصی تبدیل می‌کند.
+          </p>
+
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#voices">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              شنیدن نمونه صداها
+            </a>
+            <a class="btn btn-ghost" data-tel="office" href="#">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .58 3.6 1 1 0 0 1-.25 1l-2.23 2.2z"/></svg>
+              تماس و مشاوره رایگان
+            </a>
+          </div>
+
+          <ul class="hero-points">
+            <li><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg> تحویل از ۲۴ ساعت</li>
+            <li><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg> کیفیت استودیویی</li>
+            <li><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg> پشتیبانی اختصاصی</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual">
+          <div class="orb"></div>
+          <div class="mock-card">
+            <div class="mock-row">
+              <div class="mock-avatar"></div>
+              <div class="mock-lines"><span></span><span></span></div>
+            </div>
+            <div class="mock-wave" id="mockWave"></div>
+            <div class="mock-foot">
+              <span>پردازش با هوش مصنوعی</span>
+              <span>کیفیت ۴۸kHz</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= آمار ======================= -->
+    <div class="stats">
+      <div class="container stats-grid">
+        <div class="stat"><b>۵+</b><span>صداپیشه هوش مصنوعی</span></div>
+        <div class="stat"><b>۹۸٪</b><span>رضایت مشتریان</span></div>
+        <div class="stat"><b>۲۴ ساعت</b><span>میانگین زمان تحویل</span></div>
+        <div class="stat"><b>۱۰۰٪</b><span>اختصاصی و امن</span></div>
+      </div>
+    </div>
+
+    <!-- ======================= نمونه صداها ======================= -->
+    <section id="voices">
+      <div class="container">
+        <div class="sec-head reveal">
+          <span class="kicker">نمونه کارها</span>
+          <h2>صدای مورد علاقه‌ات را انتخاب کن</h2>
+          <p>روی دکمه پخش هر کارت بزن و نمونه صدا را بشنو. بعد از انتخاب، سفارش را تلفنی ثبت کن.</p>
+        </div>
+
+        <div class="voices-grid" id="voicesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ======================= نحوه کار ======================= -->
+    <section id="how">
+      <div class="container">
+        <div class="sec-head reveal">
+          <span class="kicker">فرآیند سفارش</span>
+          <h2>فقط در ۴ قدم ساده</h2>
+          <p>بدون نیاز به ثبت‌نام؛ کافیست تماس بگیرید و متن خود را ارسال کنید.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step reveal">
+            <div class="step-num">۱</div>
+            <h3>انتخاب صدا</h3>
+            <p>نمونه صداها را بشنوید و صدایی که با محتوای شما هماهنگ است را انتخاب کنید.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">۲</div>
+            <h3>تماس و ارسال متن</h3>
+            <p>با تیم ما تماس بگیرید و متن خود را از طریق پیام‌رسان‌ها برای ما ارسال کنید.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">۳</div>
+            <h3>تولید با هوش مصنوعی</h3>
+            <p>تیم حرفه‌ای ما متن شما را با موتورهای پیشرفته به صدا تبدیل و تنظیم می‌کند.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">۴</div>
+            <h3>تحویل فایل نهایی</h3>
+            <p>فایل صوتی با کیفیت استودیویی تحویل شما می‌شود؛ آماده انتشار در هر پلتفرم.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= مزیت‌ها ======================= -->
+    <section id="features">
+      <div class="container">
+        <div class="sec-head reveal">
+          <span class="kicker">چرا صداور؟</span>
+          <h2>کیفیتی که تفاوت را حس می‌کنی</h2>
+          <p>ما فقط متن را به صدا تبدیل نمی‌کنیم؛ احساس، لحن و شخصیت را هم به آن اضافه می‌کنیم.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature reveal">
+            <div class="ic">🎙️</div>
+            <h3>صدای طبیعی و انسانی</h3>
+            <p>خروجی کار به‌گونه‌ای است که شنونده تفاوت آن را با صدای واقعی به‌سختی تشخیص می‌دهد.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="ic">⚡</div>
+            <h3>سرعت بالا در تحویل</h3>
+            <p>پروژه‌های کوتاه در کمتر از ۲۴ ساعت و پروژه‌های بلند در کوتاه‌ترین زمان ممکن آماده می‌شوند.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="ic">🎚️</div>
+            <h3>کنترل کامل لحن و احساس</h3>
+            <p>غمگین، هیجان‌زده، رسمی یا صمیمی؛ لحن صدا را دقیقاً مطابق نیاز پروژه تنظیم می‌کنیم.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="ic">🌍</div>
+            <h3>پشتیبانی از چند زبان</h3>
+            <p>فارسی، انگلیسی و چند زبان دیگر؛ مناسب پروژه‌های داخلی و بین‌المللی.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="ic">🔒</div>
+            <h3>امنیت و محرمانگی</h3>
+            <p>متن و فایل‌های شما نزد ما محفوظ است و بدون اجازه شما در اختیار کسی قرار نمی‌گیرد.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="ic">🤝</div>
+            <h3>پشتیبانی اختصاصی</h3>
+            <p>تا لحظه تحویل و حتی پس از آن، در کنار شما هستیم تا نتیجه نهایی رضایت‌بخش باشد.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= تماس ======================= -->
+    <section id="contact">
+      <div class="container">
+        <div class="sec-head reveal">
+          <span class="kicker">ارتباط با ما</span>
+          <h2>سفارش خود را تلفنی ثبت کنید</h2>
+          <p>کارشناسان ما آماده پاسخگویی و مشاوره رایگان هستند.</p>
+        </div>
+
+        <div class="contact-wrap">
+
+          <!-- اطلاعات تماس -->
+          <div class="contact-info reveal">
+            <h3>راه‌های ارتباطی</h3>
+            <p>برای ثبت سفارش یا دریافت مشاوره، از هر کدام از راه‌های زیر با ما در تماس باشید.</p>
+
+            <div class="contact-list">
+              <a class="c-item" data-tel="office" href="#">
+                <span class="ic">☎️</span>
+                <span class="txt"><span>تلفن دفتر</span><b data-contact="officeDisplay"></b></span>
+                <span class="copy" data-copy="office">کپی</span>
+              </a>
+
+              <a class="c-item" data-tel="mobile" href="#">
+                <span class="ic">📱</span>
+                <span class="txt"><span>موبایل / واتساپ</span><b data-contact="mobileDisplay"></b></span>
+                <span class="copy" data-copy="mobile">کپی</span>
+              </a>
+
+              <a class="c-item" data-mail href="#">
+                <span class="ic">✉️</span>
+                <span class="txt"><span>ایمیل</span><b data-contact="email"></b></span>
+                <span class="copy" data-copy="email">کپی</span>
+              </a>
+
+              <a class="c-item" data-social="telegram" href="#" target="_blank" rel="noopener">
+                <span class="ic">✈️</span>
+                <span class="txt"><span>تلگرام</span><b data-contact="telegramShow"></b></span>
+              </a>
+
+              <a class="c-item" data-social="instagram" href="#" target="_blank" rel="noopener">
+                <span class="ic">📷</span>
+                <span class="txt"><span>اینستاگرام</span><b data-contact="instagramShow"></b></span>
+              </a>
+            </div>
+
+            <div class="hours">
+              <span>🕘</span>
+              <span data-contact="hours"></span>
+            </div>
+          </div>
+
+          <!-- فرم -->
+          <div class="form-card reveal">
+            <div id="formWrap">
+              <h3>درخواست تماس</h3>
+              <p>فرم زیر را پر کنید؛ کارشناسان ما در اولین فرصت با شما تماس می‌گیرند.</p>
+
+              <form id="contactForm" novalidate>
+                <div class="form-row">
+                  <div class="field">
+                    <label for="fname">نام و نام خانوادگی</label>
+                    <input id="fname" name="name" type="text" placeholder="مثلاً: علی رضایی" required />
+                  </div>
+                  <div class="field">
+                    <label for="fphone">شماره تماس</label>
+                    <input id="fphone" name="phone" type="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" required />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="fvoice">صدای مورد نظر</label>
+                  <select id="fvoice" name="voice"></select>
+                </div>
+
+                <div class="field">
+                  <label for="fmsg">توضیحات پروژه (اختیاری)</label>
+                  <textarea id="fmsg" name="message" placeholder="مثلاً: یک متن ۳۰۰ کلمه‌ای برای تیزر تبلیغاتی می‌خواهم..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+                  ارسال درخواست
+                </button>
+              </form>
+            </div>
+
+            <div class="form-success" id="formSuccess">
+              <div class="ok">✓</div>
+              <h4>درخواست شما ثبت شد</h4>
+              <p>به‌زودی کارشناسان ما با شما تماس می‌گیرند.<br />برای ثبت سریع‌تر سفارش، می‌توانید همین حالا با ما تماس بگیرید.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+                <a class="btn btn-primary btn-sm" data-tel="office" href="#">تماس تلفنی</a>
+                <a class="btn btn-ghost btn-sm" id="waSend" href="#" target="_blank" rel="noopener">ارسال در واتساپ</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= فوتر ======================= -->
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a href="#" class="logo">
+            <span class="logo-mark">
+              <svg viewBox="0 0 24 24"><path d="M4 9v6h3l5 4V5L7 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+            </span>
+            <span>صداور<small>SEDAVAR AI</small></span>
+          </a>
+          <p>تبدیل متن به صدای طبیعی و انسانی با استفاده از پیشرفته‌ترین فناوری‌های هوش مصنوعی. مناسب تبلیغات، پادکست، کتاب صوتی، آموزش و دوبله.</p>
+        </div>
+
+        <div class="foot-col">
+          <h4>دسترسی سریع</h4>
+          <ul>
+            <li><a href="#voices">نمونه صداها</a></li>
+            <li><a href="#how">نحوه کار</a></li>
+            <li><a href="#features">مزیت‌ها</a></li>
+            <li><a href="#contact">تماس با ما</a></li>
+          </ul>
+        </div>
+
+        <div class="foot-col">
+          <h4>ارتباط</h4>
+          <ul>
+            <li><a data-tel="office" href="#" data-contact="officeDisplay"></a></li>
+            <li><a data-tel="mobile" href="#" data-contact="mobileDisplay"></a></li>
+            <li><a data-mail href="#" data-contact="email"></a></li>
+            <li><a data-social="telegram" href="#" target="_blank" rel="noopener">تلگرام</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="foot-bottom">
+        <span>© <span id="year"></span> صداور — تمامی حقوق محفوظ است.</span>
+        <span>ساخته‌شده با ❤️ و هوش مصنوعی</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /.page -->
+
+<!-- ======================= مودال سفارش ======================= -->
+<div class="modal" id="orderModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" data-close aria-label="بستن">×</button>
+
+    <div class="modal-icon">🎧</div>
+    <h3 id="modalTitle">سفارش صدای <span id="modalVoiceName">—</span></h3>
+    <p>
+      برای ثبت سفارش کافیست با تیم ما تماس بگیرید. کافیست بگویید صدای «<b id="modalVoiceName2">—</b>» را انتخاب کرده‌اید
+      و متن خود را برای ما ارسال کنید؛ بقیه کار با ماست.
+    </p>
+
+    <a class="btn btn-primary modal-call" id="modalCall" href="#">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .58 3.6 1 1 0 0 1-.25 1l-2.23 2.2z"/></svg>
+      تماس با پشتیبانی
+    </a>
+
+    <div class="modal-phones">
+      <div class="mp-row">
+        <span class="t">تلفن دفتر</span>
+        <b data-contact="officeDisplay"></b>
+        <button type="button" data-copy="office">کپی</button>
+      </div>
+      <div class="mp-row">
+        <span class="t">موبایل</span>
+        <b data-contact="mobileDisplay"></b>
+        <button type="button" data-copy="mobile">کپی</button>
+      </div>
+      <div class="mp-row">
+        <span class="t">ایمیل</span>
+        <b data-contact="email"></b>
+        <button type="button" data-copy="email">کپی</button>
+      </div>
+    </div>
+
+    <div class="modal-socials">
+      <a data-social="telegram" href="#" target="_blank" rel="noopener">✈️ تلگرام</a>
+      <a data-social="whatsapp" href="#" target="_blank" rel="noopener">💬 واتساپ</a>
+      <a data-social="instagram" href="#" target="_blank" rel="noopener">📷 اینستاگرام</a>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= توست ======================= -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ⚙️ تنظیمات تماس — این بخش را با اطلاعات واقعی خود تغییر دهید
+   ============================================================ */
+const CONTACT = {
+  officeDisplay : '۰۲۱ - ۹۱۰۰ ۲۲۳۳',
+  officeLink    : '+982191002233',
+
+  mobileDisplay : '۰۹۱۲ ۳۴۵ ۶۷۸۹',
+  mobileLink    : '+989123456789',
+
+  email         : 'hello@sedavar.ai',
+
+  telegram      : 'https://t.me/sedavar',
+  whatsapp      : 'https://wa.me/989123456789',
+  instagram     : 'https://instagram.com/sedavar',
+
+  hours         : 'شنبه تا پنجشنبه، ساعت ۹ صبح تا ۷ عصر'
+};
+
+/* ============================================================
+   🎙️ اطلاعات صداهای هوش مصنوعی
+   ------------------------------------------------------------
+   برای هر صدا می‌توانید:
+   - نام، توضیح و تگ‌ها را تغییر دهید
+   - رنگ کارت را عوض کنید (colors)
+   - src   = مسیر فایل صوتی واقعی (مثلاً 'audio/arash.mp3')
+   - image = مسیر تصویر پروفایل (مثلاً 'images/arash.jpg')
+   - f0 و duration فقط وقتی استفاده می‌شوند که فایل صوتی واقعی نداشته باشید
+   ============================================================ */
+const VOICES = [
+  {
+    id: 'arash kamangir',
+    name: ' آرش کمانگیر',
+    role: 'مردانه • گرم و رسمی',
+    desc: 'صدایی با صلابت انتخابی عالی برای  پروژه های ملی و حماسی',
+    tags: ['مردانه', 'ملی', 'حماسی'],
+    colors: ['#7c5cff', '#22d3ee'],
+    f0: 112, duration: 9, seed: 1337,
+    src:   'audio/arash.mp3',
+    image: 'images/arash.jpg'
+  },
+  {
+    id: 'sara',
+    name: 'سارا',
+    role: 'زنانه • آرام و دلنشین',
+    desc: 'لحنی ملایم و صمیمی؛ مناسب کتاب صوتی، پادکست، مدیتیشن و محتوای آرامش‌بخش.',
+    tags: ['کتاب صوتی', 'پادکست', 'آرامش'],
+    colors: ['#ff5c9d', '#ffb45c'],
+    f0: 205, duration: 8, seed: 4242,
+    src:   'audio/sara.mp3',
+    image: 'images/sara.jpg'
+  },
+  {
+    id: 'nima',
+    name: 'نیما',
+    role: 'مردانه • جوان و پرانرژی',
+    desc: 'پرانرژی، صمیمی و جذاب؛ مناسب ویدیوهای یوتیوب، شبکه‌های اجتماعی و تبلیغات جوان‌پسند.',
+    tags: ['یوتیوب', 'شبکه اجتماعی', 'پرانرژی'],
+    colors: ['#22d3ee', '#4ade80'],
+    f0: 148, duration: 8, seed: 777,
+    src:   'audio/nima.mp3',
+    image: 'images/nima.jpg'
+  },
+  {
+    id: 'mahsa',
+    name: 'مهسا',
+    role: 'زنانه • خبری و حرفه‌ای',
+    desc: 'بیانی شفاف، رسمی و قابل اعتماد؛ مناسب اخبار، دوره‌های آموزشی و نریشن سازمانی.',
+    tags: ['خبری', 'آموزشی', 'شرکتی'],
+    colors: ['#f59e0b', '#ef4444'],
+    f0: 192, duration: 9, seed: 9090,
+    src:   'audio/mahsa.mp3',
+    image: 'images/mahsa.jpg'
+  },
+  {
+    id: 'kian',
+    name: 'کیان',
+    role: 'مردانه • داستانی و کاراکتری',
+    desc: 'صدایی نمایشی و پر از احساس؛ مناسب انیمیشن، بازی، قصه‌های کودکانه و دوبله.',
+    tags: ['انیمیشن', 'گیم', 'دوبله'],
+    colors: ['#8b5cf6', '#ec4899'],
+    f0: 132, duration: 10, seed: 5150,
+    src:   'audio/kian.mp3',
+    image: 'images/kian.jpg'
+  }
+];
+
+/* ============================================================
+   ابزارهای کمکی
+   ============================================================ */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+const toFa = (v) => String(v).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+function fmtTime(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return toFa(m) + ':' + toFa(String(s).padStart(2, '0'));
+}
+
+/* ============================================================
+   ۱) پر کردن اطلاعات تماس در صفحه
+   ============================================================ */
+function applyContact() {
+  const map = {
+    officeDisplay : CONTACT.officeDisplay,
+    mobileDisplay : CONTACT.mobileDisplay,
+    email         : CONTACT.email,
+    hours         : CONTACT.hours,
+    telegramShow  : 't.me/sedavar',
+    instagramShow : 'instagram.com/sedavar'
+  };
+
+  $$('[data-contact]').forEach(el => {
+    const key = el.dataset.contact;
+    if (map[key] !== undefined) el.textContent = map[key];
+  });
+
+  // لینک تماس
+  $$('[data-tel]').forEach(el => {
+    const type = el.dataset.tel;
+    el.href = 'tel:' + (type === 'mobile' ? CONTACT.mobileLink : CONTACT.officeLink);
+  });
+
+  // ایمیل
+  $$('[data-mail]').forEach(el => {
+    el.href = 'mailto:' + CONTACT.email;
+  });
+
+  // شبکه‌های اجتماعی
+  $$('[data-social]').forEach(el => {
+    const key = el.dataset.social;
+    if (CONTACT[key]) {
+      el.href = CONTACT[key];
+      if (!el.target) { el.target = '_blank'; el.rel = 'noopener'; }
+    }
+  });
+
+  // دکمه تماس مودال
+  const mc = $('#modalCall');
+  if (mc) mc.href = 'tel:' + CONTACT.officeLink;
+}
+
+/* ============================================================
+   ۲) ساخت کارت‌های نمونه صدا
+   ============================================================ */
+function buildVoiceCards() {
+  const grid = $('#voicesGrid');
+  if (!grid) return;
+
+  grid.innerHTML = VOICES.map(v => `
+    <article class="voice-card reveal"
+             data-voice="${v.id}"
+             data-src="${v.src || ''}"
+             data-duration="${v.duration}"
+             style="--c1:${v.colors[0]};--c2:${v.colors[1]}">
+
+      <div class="vc-top">
+        <div class="avatar">
+          ${v.image
+            ? `<img src="${v.image}" alt="پروفایل ${v.name}" loading="lazy"
+                    onerror="this.style.display='none';this.parentNode.insertAdjacentHTML('beforeend','<span>${v.name.charAt(0)}</span>')" />`
+            : `<span>${v.name.charAt(0)}</span>`}
+        </div>
+        <div class="vc-id">
+          <h3>${v.name}</h3>
+          <p>${v.role}</p>
+        </div>
+        <span class="badge-ai">AI</span>
+      </div>
+
+      <p class="vc-desc">${v.desc}</p>
+
+      <div class="tags">${v.tags.map(t => `<span>${t}</span>`).join('')}</div>
+
+      <div class="player">
+        <button class="play-btn" type="button" aria-label="پخش نمونه صدای ${v.name}">
+          <svg class="i-play"  viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <div class="track" role="slider" aria-label="نوار پیشرفت">
+          <div class="fill"></div>
+        </div>
+        <span class="time">${fmtTime(0)} / ${fmtTime(v.duration)}</span>
+      </div>
+
+      <button class="btn-order" type="button" data-order="${v.name}">
+        ثبت سفارش این صدا
+      </button>
+    </article>
+  `).join('');
+}
+
+/* ============================================================
+   ۳) موتور صوتی
+   ============================================================ */
+
+/* تولید صدای دموی شبیه‌به‌گفتار (تا زمانی که فایل واقعی نداشته باشید) */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function synthVoice(ctx, opt) {
+  const sr       = ctx.sampleRate;
+  const duration = opt.duration || 8;
+  const f0       = opt.f0 || 140;
+  const rnd      = mulberry32(opt.seed || 1);
+  const len      = Math.floor(sr * duration);
+  const buffer   = ctx.createBuffer(1, len, sr);
+  const data     = buffer.getChannelData(0);
+
+  // ساخت هجاها
+  const syl = [];
+  let t = 0.2;
+  while (t < duration - 0.4) {
+    const dur = 0.09 + rnd() * 0.17;
+    syl.push({ start: t, dur, f: f0 * (0.86 + rnd() * 0.34) });
+    t += dur + 0.02 + rnd() * 0.09;
+    if (rnd() < 0.15) t += 0.22 + rnd() * 0.42; // مکث بین جمله‌ها
+  }
+
+  // سنتز هر هجا
+  for (const s of syl) {
+    const i0 = Math.floor(s.start * sr);
+    const i1 = Math.min(len, Math.floor((s.start + s.dur) * sr));
+    const n  = i1 - i0;
+    if (n <= 0) continue;
+
+    for (let i = i0; i < i1; i++) {
+      const p  = (i - i0) / n;
+      const env = Math.pow(Math.sin(Math.PI * p), 0.6) * (1 - 0.25 * p);
+      const tt = (i - i0) / sr;
+      const f  = s.f
+               * (1 + 0.06 * Math.sin(Math.PI * p))
+               * (1 + 0.02 * Math.sin(2 * Math.PI * 5.5 * tt));
+
+      let v = 0;
+      v += Math.sin(2 * Math.PI * f * tt);
+      v += 0.55 * Math.sin(2 * Math.PI * 2 * f * tt);
+      v += 0.32 * Math.sin(2 * Math.PI * 3 * f * tt);
+      v += 0.18 * Math.sin(2 * Math.PI * 4 * f * tt);
+      v += 0.09 * Math.sin(2 * Math.PI * 5 * f * tt);
+
+      data[i] += v * env * 0.2;
+    }
+  }
+
+  // نرمال‌سازی
+  let max = 0;
+  for (let i = 0; i < len; i++) {
+    const a = Math.abs(data[i]);
+    if (a > max) max = a;
+  }
+  if (max > 0) {
+    const g = 0.85 / max;
+    for (let i = 0; i < len; i++) data[i] *= g;
+  }
+
+  // محو شدن ابتدا و انتها
+  const fade = Math.floor(sr * 0.06);
+  for (let i = 0; i < fade && i < len; i++) {
+    const k = i / fade;
+    data[i] *= k;
+    data[len - 1 - i] *= k;
+  }
+
+  return buffer;
+}
+
+/* ---- مدیریت پخش ---- */
+let audioCtx = null;
+let active   = null;          // { card, buffer, source, gain, startedAt, offset, raf }
+const bufferCache = new Map();
+
+function ensureCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+async function getBuffer(card, ctx) {
+  const id = card.dataset.voice;
+  if (bufferCache.has(id)) return bufferCache.get(id);
+
+  const src = card.dataset.src;
+
+  // اگر فایل صوتی واقعی داشت، از آن استفاده کن
+  if (src) {
+    try {
+      const res = await fetch(src);
+      if (res.ok) {
+        const arr = await res.arrayBuffer();
+        const buf = await ctx.decodeAudioData(arr);
+        bufferCache.set(id, buf);
+        return buf;
+      }
+      // اگر فایل پیدا نشد، به دموی تولیدی برمی‌گردیم
+      console.warn('فایل صوتی پیدا نشد:', src, '— استفاده از دموی خودکار');
+    } catch (e) {
+      console.warn('خطا در لود فایل صوتی:', src, e);
+    }
+  }
+
+  // تولید دموی صوتی
+  const cfg = VOICES.find(v => v.id === id) || {};
+  const buf = synthVoice(ctx, cfg);
+  bufferCache.set(id, buf);
+  return buf;
+}
+
+/* به‌روزرسانی رابط کاربری */
+function updateFill(card, ratio) {
+  const fill = $('.fill', card);
+  if (fill) fill.style.width = Math.max(0, Math.min(1, ratio)) * 100 + '%';
+}
+
+function updateTime(card, current, total) {
+  const el = $('.time', card);
+  if (el) el.textContent = fmtTime(current) + ' / ' + fmtTime(total);
+}
+
+/* پخش */
+function startCard(card, buffer) {
+  const ctx  = ensureCtx();
+  const gain = ctx.createGain();
+  gain.gain.value = 0.9;
+  gain.connect(ctx.destination);
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(gain);
+
+  source.onended = () => {
+    if (active && active.source === source) finishActive();
+  };
+
+  source.start();
+
+  active = {
+    card, buffer, source, gain,
+    startedAt: ctx.currentTime,
+    offset: 0,
+    raf: 0
+  };
+
+  card.classList.add('is-playing');
+  updateTime(card, 0, buffer.duration);
+  tick();
+}
+
+function tick() {
+  if (!active || !active.source) return;
+
+  const pos = active.offset + (audioCtx.currentTime - active.startedAt);
+  const dur = active.buffer.duration;
+  const p   = Math.min(1, pos / dur);
+
+  updateFill(active.card, p);
+  updateTime(active.card, pos, dur);
+
+  if (p < 1) active.raf = requestAnimationFrame(tick);
+}
+
+function pauseActive() {
+  const a = active;
+  if (!a || !a.source) return;
+
+  a.offset += audioCtx.currentTime - a.startedAt;
+  a.source.onended = null;
+  try { a.source.stop(); } catch (e) {}
+  a.source = null;
+
+  cancelAnimationFrame(a.raf);
+  a.card.classList.remove('is-playing');
+}
+
+function resumeActive() {
+  const a = active;
+  if (!a || a.source) return;
+
+  const ctx = ensureCtx();
+  const source = ctx.createBufferSource();
+  source.buffer = a.buffer;
+  source.connect(a.gain);
+
+  const off = a.offset % a.buffer.duration;
+  source.onended = () => {
+    if (active && active.source === source) finishActive();
+  };
+  source.start(0, off);
+
+  a.source    = source;
+  a.startedAt = ctx.currentTime;
+
+  a.card.classList.add('is-playing');
+  tick();
+}
+
+function finishActive() {
+  const a = active;
+  if (!a) return;
+
+  cancelAnimationFrame(a.raf);
+  a.card.classList.remove('is-playing');
+  updateFill(a.card, 1);
+  updateTime(a.card, a.buffer.duration, a.buffer.duration);
+
+  const card = a.card;
+  const buf  = a.buffer;
+  active = null;
+
+  setTimeout(() => {
+    if (active && active.card === card) return;
+    updateFill(card, 0);
+    updateTime(card, 0, buf.duration);
+  }, 650);
+}
+
+function stopActive() {
+  if (!active) return;
+  if (active.source) {
+    active.source.onended = null;
+    try { active.source.stop(); } catch (e) {}
+  }
+  cancelAnimationFrame(active.raf);
+  active.card.classList.remove('is-playing');
+  updateFill(active.card, 0);
+  updateTime(active.card, 0, active.buffer.duration);
+  active = null;
+}
+
+function seekCard(card, ratio) {
+  const a = active;
+  if (!a || a.card !== card) return;
+
+  const dur = a.buffer.duration;
+  const pos = Math.max(0, Math.min(1, ratio)) * dur;
+
+  if (a.source) {
+    a.source.onended = null;
+    try { a.source.stop(); } catch (e) {}
+    a.source = null;
+    a.offset = pos;
+    resumeActive();
+  } else {
+    a.offset = pos;
+    updateFill(card, ratio);
+    updateTime(card, pos, dur);
+  }
+}
+
+/* کلیک روی دکمه پخش */
+async function onPlayClick(card) {
+  // همان کارت در حال پخش است → توقف / ادامه
+  if (active && active.card === card) {
+    if (active.source) pauseActive();
+    else resumeActive();
+    return;
+  }
+
+  stopActive();
+
+  card.classList.add('loading');
+  await new Promise(r => setTimeout(r, 30)); // فرصت رندر به مرورگر
+
+  try {
+    const ctx = ensureCtx();
+    const buf = await getBuffer(card, ctx);
+    card.classList.remove('loading');
+    startCard(card, buf);
+  } catch (e) {
+    card.classList.remove('loading');
+    showToast('متأسفانه پخش نمونه صدا ممکن نشد.');
+    console.error(e);
+  }
+}
+
+/* ============================================================
+   ۴) اتصال رویدادها به کارت‌ها (Event Delegation)
+   ============================================================ */
+function bindVoiceEvents() {
+  const grid = $('#voicesGrid');
+  if (!grid) return;
+
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.voice-card');
+    if (!card) return;
+
+    // دکمه پخش
+    if (e.target.closest('.play-btn')) {
+      onPlayClick(card);
+      return;
+    }
+
+    // نوار پیشرفت (جابه‌جایی)
+    const track = e.target.closest('.track');
+    if (track) {
+      const rect = track.getBoundingClientRect();
+      // چون چیدمان راست‌به‌چپ است، از لبه راست محاسبه می‌کنیم
+      const ratio = (rect.right - e.clientX) / rect.width;
+      seekCard(card, ratio);
+      return;
+    }
+
+    // دکمه سفارش
+    const orderBtn = e.target.closest('.btn-order');
+    if (orderBtn) {
+      openModal(orderBtn.dataset.order);
+    }
+  });
+}
+
+/* ============================================================
+   ۵) مودال سفارش
+   ============================================================ */
+const modal = $('#orderModal');
+
+function openModal(voiceName) {
+  if (!modal) return;
+  $('#modalVoiceName').textContent  = voiceName || '—';
+  $('#modalVoiceName2').textContent = voiceName || '—';
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-close]')) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ============================================================
+   ۶) کپی کردن اطلاعات تماس
+   ============================================================ */
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  // روش جایگزین
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); resolve(); }
+    catch (e) { reject(e); }
+    document.body.removeChild(ta);
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-copy]');
+  if (!btn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const key = btn.dataset.copy;
+  const textMap = {
+    office : CONTACT.officeLink,
+    mobile : CONTACT.mobileLink,
+    email  : CONTACT.email
+  };
+  const value = textMap[key] || '';
+
+  copyText(value)
+    .then(() => showToast('کپی شد ✓'))
+    .catch(() => showToast('کپی نشد، لطفاً دستی یادداشت کنید.'));
+});
+
+/* ============================================================
+   ۷) توست
+   ============================================================ */
+let toastTimer = null;
+function showToast(msg) {
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ============================================================
+   ۸) فرم تماس
+   ============================================================ */
+function initForm() {
+  const select = $('#fvoice');
+  if (select) {
+    select.innerHTML = '<option value="">انتخاب کنید...</option>' +
+      VOICES.map(v => `<option value="${v.name}">صدای ${v.name} — ${v.role}</option>`).join('');
+  }
+
+  const form = $('#contactForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name  = form.name.value.trim();
+    const phone = form.phone.value.trim();
+    const voice = form.voice.value;
+    const msg   = form.message.value.trim();
+
+    if (!name || name.length < 3) { showToast('لطفاً نام خود را کامل وارد کنید.'); form.name.focus(); return; }
+    if (!phone || phone.replace(/\D/g, '').length < 10) { showToast('لطفاً شماره تماس معتبر وارد کنید.'); form.phone.focus(); return; }
+
+    // ساخت متن برای واتساپ
+    const text =
+      `سلام، من ${name} هستم.\n` +
+      `درخواست تولید صدا با هوش مصنوعی دارم.\n` +
+      `صدای انتخابی: ${voice || 'مشاوره می‌خواهم'}\n` +
+      `شماره تماس: ${phone}\n` +
+      (msg ? `توضیحات: ${msg}` : '');
+
+    const wa = $('#waSend');
+    if (wa) wa.href = CONTACT.whatsapp + '?text=' + encodeURIComponent(text);
+
+    $('#formWrap').style.display = 'none';
+    $('#formSuccess').classList.add('show');
+    showToast('درخواست شما ثبت شد ✓');
+  });
+}
+
+/* ============================================================
+   ۹) منوی موبایل
+   ============================================================ */
+function initMobileMenu() {
+  const burger = $('#burger');
+  const menu   = $('#mobileMenu');
+  if (!burger || !menu) return;
+
+  burger.addEventListener('click', () => {
+    burger.classList.toggle('active');
+    menu.classList.toggle('open');
+  });
+
+  menu.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') {
+      burger.classList.remove('active');
+      menu.classList.remove('open');
+    }
+  });
+}
+
+/* ============================================================
+   ۱۰) موج متحرک هیرو
+   ============================================================ */
+function initHeroWave() {
+  const wave = $('#mockWave');
+  if (!wave) return;
+
+  let html = '';
+  for (let i = 0; i < 34; i++) {
+    const h = 0.22 + Math.abs(Math.sin(i * 0.65)) * 0.78;
+    html += `<i style="--h:${h.toFixed(2)};animation-delay:${(i * 0.055).toFixed(2)}s"></i>`;
+  }
+  wave.innerHTML = html;
+}
+
+/* ============================================================
+   ۱۱) انیمیشن ظهور با اسکرول
+   ============================================================ */
+function initReveal() {
+  const items = $$('.reveal');
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(el => el.classList.add('in'));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = Math.min(i * 70, 280);
+        setTimeout(() => el.classList.add('in'), delay);
+        io.unobserve(el);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  items.forEach(el => io.observe(el));
+}
+
+/* ============================================================
+   ۱۲) پیش‌بارگذاری فایل‌های صوتی
+   ============================================================ */
+function preloadAudio() {
+  VOICES.forEach(v => {
+    if (!v.src) return;
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.src = v.src;
+    // خطا را در کنسول نمایش می‌دهیم تا بفهمید کدام فایل پیدا نشد
+    audio.addEventListener('error', () => {
+      console.warn('پیش‌بارگذاری ناموفق بود (فایل صوتی پیدا نشد):', v.src);
+    });
+  });
+}
+
+/* ============================================================
+   🚀 راه‌اندازی
+   ============================================================ */
+function init() {
+  applyContact();
+  buildVoiceCards();
+  bindVoiceEvents();
+
+  initForm();
+  initMobileMenu();
+  initHeroWave();
+  initReveal();
+  preloadAudio();
+
+  const y = $('#year');
+  if (y) y.textContent = toFa(new Date().getFullYear());
+
+  // توقف پخش هنگام خروج از صفحه
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && active && active.source) pauseActive();
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
